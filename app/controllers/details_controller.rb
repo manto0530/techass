@@ -1,70 +1,55 @@
 class DetailsController < ApplicationController
-  before_action :set_detail, only: %i[ show edit update destroy ]
+  before_action :set_person
+  before_action :set_detail, only: [:show, :update, :destroy]
 
-  # GET /details or /details.json
+  # GET /people/:person_id/details
   def index
-    @details = Detail.all
+    @details = @person.details
+    render json: @details
   end
 
-  # GET /details/1 or /details/1.json
+  # GET /people/:person_id/details/1
   def show
+    render json: @detail
   end
 
-  # GET /details/new
-  def new
-    @detail = Detail.new
-  end
-
-  # GET /details/1/edit
-  def edit
-  end
-
-  # POST /details or /details.json
+  # POST /people/:person_id/details
   def create
-    @detail = Detail.new(detail_params)
+    @detail = @person.details.new(detail_params)
 
-    respond_to do |format|
-      if @detail.save
-        format.html { redirect_to detail_url(@detail), notice: "Detail was successfully created." }
-        format.json { render :show, status: :created, location: @detail }
-      else
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @detail.errors, status: :unprocessable_entity }
-      end
+    if @detail.save
+      render json: @detail, status: :created, location: person_detail_url(@person, @detail)
+    else
+      render json: @detail.errors, status: :unprocessable_entity
     end
   end
 
-  # PATCH/PUT /details/1 or /details/1.json
+  # PATCH/PUT /people/:person_id/details/1
   def update
-    respond_to do |format|
-      if @detail.update(detail_params)
-        format.html { redirect_to detail_url(@detail), notice: "Detail was successfully updated." }
-        format.json { render :show, status: :ok, location: @detail }
-      else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @detail.errors, status: :unprocessable_entity }
-      end
+    if @detail.update(detail_params)
+      render json: @detail
+    else
+      render json: @detail.errors, status: :unprocessable_entity
     end
   end
 
-  # DELETE /details/1 or /details/1.json
+  # DELETE /people/:person_id/details/1
   def destroy
     @detail.destroy
-
-    respond_to do |format|
-      format.html { redirect_to details_url, notice: "Detail was successfully destroyed." }
-      format.json { head :no_content }
-    end
   end
 
   private
     # Use callbacks to share common setup or constraints between actions.
-    def set_detail
-      @detail = Detail.find(params[:id])
+    def set_person
+      @person = Person.find(params[:person_id])
     end
 
-    # Only allow a list of trusted parameters through.
+    def set_detail
+      @detail = @person.details.find(params[:id])
+    end
+
+    # Only allow a trusted parameter "white list" through.
     def detail_params
-      params.require(:detail).permit(:person_id)
+      params.require(:detail).permit!
     end
 end
